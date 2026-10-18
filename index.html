@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JR東海 在来線運行状況</title>
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                         "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            margin-bottom: 8px;
+            font-size: 24px;
+        }
+
+        .update-info {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        th,
+        td {
+            padding: 12px 14px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background: #eee;
+            font-weight: bold;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .status {
+            font-weight: bold;
+            padding: 6px 10px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+
+        .normal {
+            background: #d9f2d9;
+            color: #176b17;
+        }
+
+        .delay {
+            background: #fff1bf;
+            color: #8a6500;
+        }
+
+        .suspend {
+            background: #ffd6d6;
+            color: #b00000;
+        }
+
+        .official-button {
+            display: inline-block;
+            padding: 8px 14px;
+            background: #555;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 13px;
+        }
+
+        .official-button:hover {
+            background: #333;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 20px;
+            }
+
+            th,
+            td {
+                padding: 9px 7px;
+                font-size: 13px;
+            }
+
+            th:nth-child(3),
+            td:nth-child(3) {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>JR東海 在来線運行状況</h1>
+
+    <div class="update-info">
+        最終更新：<span id="update-time"></span>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>路線</th>
+                <th>運行状況</th>
+                <th>更新</th>
+            </tr>
+        </thead>
+
+        <tbody id="status-table">
+        </tbody>
+    </table>
+
+    <br>
+
+    <a
+        class="official-button"
+        href="https://
