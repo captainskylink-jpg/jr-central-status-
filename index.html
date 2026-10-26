@@ -1,143 +1,190 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JR東海 在来線運行状況</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
-                         "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background: #f5f5f5;
-            color: #333;
-        }
+  <title>JR東海 運行情報</title>
 
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f5f5f5;
+      color: #222;
+    }
 
-        h1 {
-            margin-bottom: 8px;
-            font-size: 24px;
-        }
+    h1 {
+      margin-top: 0;
+    }
 
-        .update-info {
-            color: #666;
-            font-size: 14px;
-            margin-bottom: 16px;
-        }
+    #updated {
+      margin-bottom: 20px;
+      color: #666;
+      font-size: 14px;
+    }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: #fff;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-        }
+    #lines {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
 
-        th,
-        td {
-            padding: 12px 14px;
-            border-bottom: 1px solid #ddd;
-            text-align: left;
-        }
+    .line {
+      background: white;
+      border-radius: 6px;
+      padding: 14px 16px;
+      border: 1px solid #ddd;
+    }
 
-        th {
-            background: #eee;
-            font-weight: bold;
-        }
+    .line-name {
+      font-weight: bold;
+      font-size: 16px;
+      margin-bottom: 6px;
+    }
 
-        tr:last-child td {
-            border-bottom: none;
-        }
+    .line-status {
+      font-size: 15px;
+      font-weight: bold;
+    }
 
-        .status {
-            font-weight: bold;
-            padding: 6px 10px;
-            border-radius: 5px;
-            display: inline-block;
-        }
+    .normal {
+      color: #008000;
+    }
 
-        .normal {
-            background: #d9f2d9;
-            color: #176b17;
-        }
+    .delay {
+      color: #d07000;
+    }
 
-        .delay {
-            background: #fff1bf;
-            color: #8a6500;
-        }
+    .suspend {
+      color: #d00000;
+    }
 
-        .suspend {
-            background: #ffd6d6;
-            color: #b00000;
-        }
+    .detail {
+      margin-top: 8px;
+      font-size: 14px;
+      color: #555;
+    }
 
-        .official-button {
-            display: inline-block;
-            padding: 8px 14px;
-            background: #555;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            font-size: 13px;
-        }
-
-        .official-button:hover {
-            background: #333;
-        }
-
-        @media (max-width: 600px) {
-            body {
-                padding: 10px;
-            }
-
-            h1 {
-                font-size: 20px;
-            }
-
-            th,
-            td {
-                padding: 9px 7px;
-                font-size: 13px;
-            }
-
-            th:nth-child(3),
-            td:nth-child(3) {
-                display: none;
-            }
-        }
-    </style>
+    #error {
+      color: #d00000;
+      margin-top: 20px;
+    }
+  </style>
 </head>
 
 <body>
 
-<div class="container">
+  <h1>JR東海 運行情報</h1>
 
-    <h1>JR東海 在来線運行状況</h1>
+  <div id="updated">
+    データ取得中...
+  </div>
 
-    <div class="update-info">
-        最終更新：<span id="update-time"></span>
-    </div>
+  <div id="lines"></div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>路線</th>
-                <th>運行状況</th>
-                <th>更新</th>
-            </tr>
-        </thead>
+  <div id="error"></div>
 
-        <tbody id="status-table">
-        </tbody>
-    </table>
 
-    <br>
+  <script>
 
-    <a
-        class="official-button"
-        href="https://
+    // JR東海の運行情報を加工して返してくれるWorker
+    const WORKER_URL =
+      "https://jr-central-fetch.hashizume-customize.workers.dev/";
+
+
+    // Workerからデータを取得
+    async function loadTrainInfo() {
+
+      const linesElement = document.getElementById("lines");
+      const updatedElement = document.getElementById("updated");
+      const errorElement = document.getElementById("error");
+
+      try {
+
+        // Workerへアクセス
+        const response = await fetch(WORKER_URL);
+
+        // HTTPエラーなら停止
+        if (!response.ok) {
+          throw new Error(
+            "Workerからデータを取得できませんでした"
+          );
+        }
+
+        // JSONとして読み込む
+        const data = await response.json();
+
+        console.log("取得したデータ:", data);
+
+
+        // 更新日時
+        updatedElement.textContent =
+          "JR東海データ取得日: " + data.createTime;
+
+
+        // 一旦表示を空にする
+        linesElement.innerHTML = "";
+
+
+        // 13路線を1つずつ処理
+        data.lines.forEach(line => {
+
+          // 路線全体
+          const lineElement = document.createElement("div");
+          lineElement.className = "line";
+
+
+          // 路線名
+          const nameElement = document.createElement("div");
+          nameElement.className = "line-name";
+          nameElement.textContent = line.name;
+
+
+          // 運行状態
+          const statusElement = document.createElement("div");
+          statusElement.className =
+            "line-status " + line.status;
+
+          statusElement.textContent = line.text;
+
+
+          // 詳細情報
+          const detailElement = document.createElement("div");
+          detailElement.className = "detail";
+          detailElement.textContent = line.detail;
+
+
+          // 路線名 → 状態 → 詳細
+          lineElement.appendChild(nameElement);
+          lineElement.appendChild(statusElement);
+
+          if (line.detail) {
+            lineElement.appendChild(detailElement);
+          }
+
+
+          // 完成した路線を画面に追加
+          linesElement.appendChild(lineElement);
+
+        });
+
+      } catch (error) {
+
+        console.error(error);
+
+        errorElement.textContent =
+          "運行情報を取得できませんでした。";
+
+      }
+    }
+
+
+    // ページを開いたら取得
+    loadTrainInfo();
+
+  </script>
+
+</body>
+</html>
